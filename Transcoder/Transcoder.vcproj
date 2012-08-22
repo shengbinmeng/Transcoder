@@ -174,7 +174,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\Configure.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\decode.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Dispatcher.cpp"
 				>
 			</File>
 			<File
@@ -182,11 +190,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\EncoderInterface.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\FrameQueue.cpp"
 				>
 			</File>
 			<File
+				RelativePath=".\SharedMemory.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\transcode.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Transcoder.cpp"
 				>
 			</File>
 			<File
@@ -200,7 +220,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\Configure.h"
+				>
+			</File>
+			<File
 				RelativePath=".\decode.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Dispatcher.h"
 				>
 			</File>
 			<File
@@ -208,7 +236,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\EncoderInterface.h"
+				>
+			</File>
+			<File
 				RelativePath=".\FrameQueue.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SharedMemory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Transcoder.h"
 				>
 			</File>
 			<File

@@ -8,7 +8,8 @@ extern "C" {
 }
 #include "utility.h"
 #include "decode.h"
-#include "framequeue.h"
+#include "FrameQueue.h"
+#include "Transcoder.h"
 
 extern FrameQueue *frameQueue;
 
@@ -33,8 +34,9 @@ int enqueue(FrameQueue *frame_queue, AVFrame *frame)
 	return 0;
 }
 
-int decode(char * file)
+int decode(void* arg)
 {
+	Transcoder *trans = (Transcoder *) arg;
 	FILE *fp_yuv;
 	int ret, i, j;
 	// input demux & decode
@@ -50,6 +52,8 @@ int decode(char * file)
 	
 	ic = avformat_alloc_context();
 	assert( NULL != ic );
+	
+	char *file = trans->mConfigure->inputFile;
 	//file = "test.wmv";
 	ret = avformat_open_input(&ic, file, NULL, NULL);
 	if ( 0 != ret ) {
@@ -90,6 +94,9 @@ int decode(char * file)
 	frame = avcodec_alloc_frame();
 	fp_yuv = fopen("frames.yuv","wb");
 
+	Dispatcher *dispatcher = new Dispatcher();
+	trans->mDispatcher = dispatcher;
+
 	// decode loop
 	i = 0;
 	while ( i < 1000 && (ret = av_read_frame(ic, &packet)) >= 0 ) {
@@ -125,7 +132,7 @@ int decode(char * file)
 
 void* decode_entry (void *arg)
 {
-	decode ((char*)arg);
+	decode (arg);
 	return NULL;
 }
 

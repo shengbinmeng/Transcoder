@@ -29,7 +29,7 @@ extern FrameQueue *frameQueue;
 int encode_init()
 {
 	// x264 encoder initialize
-	x264_param_default_preset(&x264_param, "", "ssim");
+	x264_param_default_preset(&x264_param, /*"placebo"*/"superfast", "ssim");
 	x264_param.i_width = 640;
 	x264_param.i_height = 480;
 	x264_param.i_threads = 4;
@@ -97,8 +97,6 @@ int encode(char *file)
 
 		ret = encode_one_picture (&x264_pic);
 
-		if (ret == 1) break;
-
 		free(vf->yuv_data);
 		free(vf);
 	}
@@ -115,8 +113,6 @@ int encode_one_picture(x264_picture_t *pic)
 	x264_pics_in++;
 	printf("input %d frame to encoder, pts = %lld\n", x264_pics_in, x264_pic.i_pts);
 	fflush(stdout);
-
-	if (x264_pics_in == 999) return 1;
 
 	if ( ret > 0 && x264_nal_count > 0 ) {
 		size_t bs_len = 0;
