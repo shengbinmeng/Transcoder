@@ -94,8 +94,11 @@ int decode(void* arg)
 	frame = avcodec_alloc_frame();
 	fp_yuv = fopen("frames.yuv","wb");
 
+	trans->mConfigure->height = codec_ctx->height;
+	trans->mConfigure->width = codec_ctx->width;
 	Dispatcher *dispatcher = new Dispatcher();
 	trans->mDispatcher = dispatcher;
+	trans->initDispatcher();
 
 	// decode loop
 	i = 0;
@@ -112,11 +115,11 @@ int decode(void* arg)
 		if ( ret >= 0 && got_frame ) {
 			if ( frame->format == PIX_FMT_YUV420P ) {
 				write_yuv_to_file(frame, fp_yuv);
-				enqueue(frameQueue, frame);
-				printf("\tdecode %d frames, bs_len=%d, resolution=%dx%d, format=%d\n", i, packet.size, frame->width, frame->height, frame->format);
-				
+				dispatcher->dispatch(frame);
+
 				// update frame counter
 				i++;
+				printf("\tdecode %d frames, bs_len=%d, resolution=%dx%d, format=%d\n", i, packet.size, frame->width, frame->height, frame->format);
 			}
 		}
 		av_free_packet(&packet);

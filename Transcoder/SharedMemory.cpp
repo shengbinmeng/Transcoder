@@ -31,7 +31,7 @@ int SharedMemory::init(char *fileMappingName, bool isCreating, int unitSize, int
 		return -1;
 	}
 
-	unsigned char *buffer = (unsigned char*) mBuffer;
+	uint8_t *buffer = (uint8_t*) mBuffer;
 
 	mUnits = (share_mem_unit_t **) malloc(mUnitCount * sizeof(share_mem_unit_t*));
 	for (int i = 0; i < mUnitCount; i++) {
@@ -42,19 +42,20 @@ int SharedMemory::init(char *fileMappingName, bool isCreating, int unitSize, int
 }
 
 // write a block; will wait if no place to put data; return 0 if no error
-int SharedMemory::writeBlock(uint8_t* data, uint64_t dataSize, int eos)
+int SharedMemory::writeBlock(uint8_t* data, int dataSize, int eos)
 {
 	while (dataSize > 0) {
 		share_mem_unit_t *u = mUnits[mWriteCursor];
 		while (u->has_content == 1) {
-			Sleep(100);
+			printf("in writing, wait for space; cursor: %d \n", mWriteCursor);
+			Sleep(10);
 		}
-		int size = dataSize < mUnitSize ? dataSize : mUnitSize;
+		int size = dataSize <= mUnitSize ? dataSize : mUnitSize;
 		uint8_t *buffer = SharedMemory::contentOf(u);
 		memcpy(buffer, data, size);
-
+		u->has_content = 1;
 		u->content_size = size;
-		u->eob = dataSize < mUnitSize ? 1 : 0;
+		u->eob = (dataSize <= mUnitSize ? 1 : 0);
 		if (u->eob && eos) u->eos = 1;
 		else u->eos = 0;
 
@@ -73,7 +74,8 @@ int SharedMemory::readBlock(uint8_t* buffer, int *endFlag, int maxSize)
 	while (endOfBlock == 0 && maxSize > 0) {
 		share_mem_unit_t *u = mUnits[mReadCursor];
 		while (u->has_content != 1) {
-			Sleep(100);
+			printf("waiting for content, cursor: %d \n", mReadCursor);
+			Sleep(10);
 		}
 		int size = u->content_size;
 		if (size > maxSize) {
@@ -84,6 +86,7 @@ int SharedMemory::readBlock(uint8_t* buffer, int *endFlag, int maxSize)
 			break;
 		}
 		memcpy(buffer, SharedMemory::contentOf(u), size);
+		u->has_content = 0;
 		readSize += size;
 
 		if (u->eob == 1) endOfBlock = 1;
@@ -91,7 +94,6 @@ int SharedMemory::readBlock(uint8_t* buffer, int *endFlag, int maxSize)
 
 		maxSize -= size;
 		mReadCursor = (mReadCursor + 1) % mUnitCount;
-		u->has_content = 0;
 	}
 
 	if (endOfBlock == 0) *endFlag = -1;

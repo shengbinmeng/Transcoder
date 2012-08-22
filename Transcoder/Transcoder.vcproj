@@ -186,10 +186,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\encode.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\EncoderInterface.cpp"
 				>
 			</File>
@@ -229,10 +225,6 @@
 			</File>
 			<File
 				RelativePath=".\Dispatcher.h"
-				>
-			</File>
-			<File
-				RelativePath=".\encode.h"
 				>
 			</File>
 			<File

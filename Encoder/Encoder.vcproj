@@ -41,6 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="../Transcoder; ../Transcoder/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -174,12 +175,20 @@
 				RelativePath=".\encoder.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\Transcoder\SharedMemory.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="头文件"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\Transcoder\SharedMemory.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="资源文件"

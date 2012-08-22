@@ -3,14 +3,15 @@
 #ifndef _WINDOWS_
 #include <windows.h>
 #endif
-#include <stdint.h>
+#include "stdint.h"
 
 typedef struct
 {
 	int content_size;
-	uint8_t has_content : 1;
-	uint8_t eos   : 1; //end of stream
-	uint8_t eob   : 1; //end of block
+	uint8_t has_content;
+	uint8_t eos; //end of stream
+	uint8_t eob; //end of block
+	uint8_t res;
 	//reserved bits
 
 	//contents
@@ -33,6 +34,6 @@ public:
 	}
 
 	int init(char *fileMappingName, bool isCreating, int unitSize, int unitCount);
-	int writeBlock(uint8_t* data, uint64_t dataSize, int eos);
+	int writeBlock(uint8_t* data, int dataSize, int eos);
 	int readBlock(uint8_t* buffer, int *endFlag, int maxSize);
 };
