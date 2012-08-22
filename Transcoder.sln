@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Transcoder", "Transcoder\Transcoder.vcproj", "{1C2A5BE8-D06B-4657-98F9-DA3D413957F3}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Encoder", "Encoder\Encoder.vcproj", "{2C7E81E9-A8FD-4C64-9D54-82F6FE568612}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -13,6 +15,10 @@ Global
 		{1C2A5BE8-D06B-4657-98F9-DA3D413957F3}.Debug|Win32.Build.0 = Debug|Win32
 		{1C2A5BE8-D06B-4657-98F9-DA3D413957F3}.Release|Win32.ActiveCfg = Release|Win32
 		{1C2A5BE8-D06B-4657-98F9-DA3D413957F3}.Release|Win32.Build.0 = Release|Win32
+		{2C7E81E9-A8FD-4C64-9D54-82F6FE568612}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2C7E81E9-A8FD-4C64-9D54-82F6FE568612}.Debug|Win32.Build.0 = Debug|Win32
+		{2C7E81E9-A8FD-4C64-9D54-82F6FE568612}.Release|Win32.ActiveCfg = Release|Win32
+		{2C7E81E9-A8FD-4C64-9D54-82F6FE568612}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
