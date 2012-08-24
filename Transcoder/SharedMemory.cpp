@@ -12,7 +12,7 @@ int SharedMemory::init(char *fileMappingName, bool isCreating, int unitSize, int
 	int totalSize = unitCount * (unitSize + SharedMemory::unitHeaderLength);
 	if (isCreating) {
 		mHandle = CreateFileMapping( INVALID_HANDLE_VALUE, NULL,
-		PAGE_READWRITE, 0, totalSize, mapping );
+			PAGE_READWRITE, 0, totalSize, mapping );
 	} else {
 		mHandle = OpenFileMapping( FILE_MAP_ALL_ACCESS, FALSE, mapping );
 	}
@@ -74,7 +74,7 @@ int SharedMemory::readBlock(uint8_t* buffer, int *endFlag, int maxSize)
 	while (endOfBlock == 0 && maxSize > 0) {
 		share_mem_unit_t *u = mUnits[mReadCursor];
 		while (u->has_content != 1) {
-			printf("waiting for content, cursor: %d \n", mReadCursor);
+			printf("in reading, wait for content, cursor: %d \n", mReadCursor);
 			Sleep(10);
 		}
 		int size = u->content_size;

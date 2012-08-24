@@ -1,15 +1,14 @@
 #include<iostream>
 #include<fstream>
 using namespace std;
-#include "SharedMemory.h"
-#include <stdio.h>
-#include <stdlib.h>
+
+#include "mem_share.h"
 
 int main(int argc, char **argv)
 {
 	cout<<"I will do encoding."<<endl;
 	if (argc != 5) return 0;
-	cout<<argv[0]<<argv[1]<<argv[2]<<argv[3]<<argv[4]<<endl;
+	cout<<argv[0]<<" "<<argv[1]<<" "<<argv[2]<<" "<<argv[3]<<" "<<argv[4]<<" "<<endl;
 	char *framesMappingName = argv[1];
 	char *bitstreamMappingName = argv[2];
 	int width = atoi(argv[3]);
@@ -21,32 +20,38 @@ int main(int argc, char **argv)
 	sprintf(filename,"%s-nal.bin", bitstreamMappingName);
 	FILE *fpNAL = fopen(filename, "wb");
 
-	SharedMemory *framesBuffer = new SharedMemory();
+	share_mem_info_t framesBuffer, bitstreamBuffer;
 	int unitSize = width * height * 3/2;
 	int unitCount = 100;
-	framesBuffer->init(framesMappingName, false, unitSize, unitCount);
-
-	SharedMemory *bitstreamBuffer = new SharedMemory();
+	share_mem_init(&framesBuffer, framesMappingName, unitSize, unitCount, false);
+	
 	unitSize = 2000; // 2K
 	unitCount = 100;
-	bitstreamBuffer->init(bitstreamMappingName, false, unitSize, unitCount);
+	share_mem_init(&bitstreamBuffer, bitstreamMappingName, unitSize, unitCount, true);
+
 	int maxSize = 8000000; // 8M
 	uint8_t *yuvBuffer = (uint8_t*) malloc(maxSize);
 	int endFlag = 0, eos = 0;
 	while (1) {
-		int readSize = framesBuffer->readBlock(yuvBuffer, &endFlag, maxSize);
+		int readSize = share_mem_read(&framesBuffer, yuvBuffer, maxSize, &endFlag);
 		cout<<"read a block, size: "<<readSize<<endl;
-		Sleep(100);
+		Sleep(100); // encoding time
 		fwrite(yuvBuffer, readSize, 1, fpYUV);
-		// write some bits
+
+		// write some nal units
 		eos = (endFlag == 1 ? 1 : 0);
-		int nalSize = 500 + (rand() % 2000);
-		uint8_t *nal = (uint8_t*) malloc(nalSize);
-		memset(nal, 0, nalSize);
-		//bitstreamBuffer->writeBlock(nal, nalSize, eos);
-		fwrite(nal, nalSize, 1, fpNAL);
+		int size = 500 + (rand() % 2000);
+		uint8_t *nal = (uint8_t*) malloc(size);
+		memset(nal, 0, size);
+		//share_mem_write(&bitstreamBuffer, nal, size, eos);
+		fwrite(nal, size, 1, fpNAL);
+		free (nal);
 		if (endFlag == 1) break; // end of stream
 	}
+
+	free (yuvBuffer);
+	share_mem_uninit(&framesBuffer);
+	share_mem_uninit(&bitstreamBuffer);
 
 	return 0;
 }

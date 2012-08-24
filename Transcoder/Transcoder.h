@@ -10,4 +10,6 @@ public:
 	Transcoder(void);
 	~Transcoder(void);
 	int initDispatcher();
+
+	int startUp();
 };

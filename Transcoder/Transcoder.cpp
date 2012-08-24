@@ -12,3 +12,9 @@ int Transcoder::initDispatcher()
 {
 	return mDispatcher->initEncoders(mConfigure);
 }
+
+int Transcoder::startUp()
+{
+
+}
+

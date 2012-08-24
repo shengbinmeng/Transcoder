@@ -11,7 +11,7 @@ typedef struct
 	uint8_t has_content;
 	uint8_t eos; //end of stream
 	uint8_t eob; //end of block
-	uint8_t res;
+	uint8_t reserve;
 	//reserved bits
 
 	//contents
