@@ -63,7 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="avcodec.lib avutil.lib avformat.lib libx264.lib pthreadVC2.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=".\lib"
+				AdditionalLibraryDirectories="./lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -117,6 +117,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories=".\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -135,7 +136,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="avcodec.lib avutil.lib avformat.lib libx264.lib pthreadVC2.lib"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="./lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -182,10 +185,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\decode.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\Dispatcher.cpp"
 				>
 			</File>
@@ -198,7 +197,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SharedMemory.cpp"
+				RelativePath=".\mem_share.c"
 				>
 			</File>
 			<File
@@ -207,10 +206,6 @@
 			</File>
 			<File
 				RelativePath=".\Transcoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\utility.cpp"
 				>
 			</File>
 		</Filter>
@@ -228,10 +223,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\decode.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Dispatcher.h"
 				>
 			</File>
@@ -244,15 +235,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SharedMemory.h"
+				RelativePath=".\mem_share.h"
 				>
 			</File>
 			<File
 				RelativePath=".\Transcoder.h"
-				>
-			</File>
-			<File
-				RelativePath=".\utility.h"
 				>
 			</File>
 		</Filter>

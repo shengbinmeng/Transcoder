@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../Transcoder; ../Transcoder/include"
+				AdditionalIncludeDirectories="../Transcoder; ../Transcoder/include; ./Lentoid"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,7 +61,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="Lentoid.lib pthreadVC2.lib"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="./Lentoid"
+				IgnoreDefaultLibraryNames="libcmt.lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -115,12 +118,14 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="../Transcoder; ../Transcoder/include; ./Lentoid"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				CompileAs="2"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -133,7 +138,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="Lentoid.lib pthreadVC2.lib"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="./Lentoid"
+				IgnoreDefaultLibraryNames="libcmt.lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -172,11 +180,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\encoder.cpp"
+				RelativePath=".\encoder.c"
 				>
 			</File>
 			<File
-				RelativePath=".\mem_share.cpp"
+				RelativePath="..\Transcoder\mem_share.c"
 				>
 			</File>
 		</Filter>
@@ -186,7 +194,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\mem_share.h"
+				RelativePath="..\Transcoder\mem_share.h"
 				>
 			</File>
 		</Filter>

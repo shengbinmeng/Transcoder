@@ -11,6 +11,7 @@ public:
 	Dispatcher(void);
 	~Dispatcher(void);
 
-	int initEncoders(Configure *cfg);
-	void dispatch(AVFrame *frame);
+	int init(Configure *cfg);
+	void setEncoders(EncoderInterface **encoders);
+	void dispatch(AVFrame *frame, int eos);
 };

@@ -1,5 +1,4 @@
 #include "Dispatcher.h"
-#include "stdio.h"
 
 Dispatcher::Dispatcher(void)
 {
@@ -14,27 +13,25 @@ Dispatcher::~Dispatcher(void)
 }
 
 
-int  Dispatcher::initEncoders(Configure* cfg)
+int  Dispatcher::init(Configure* cfg)
 {
 	mEncoderNumber = cfg->encoderNumber;
 	mFramesPerIdr = cfg->framesPerIdr;
-	mEncoders = (EncoderInterface ** )malloc(sizeof(EncoderInterface*) * mEncoderNumber);
-	for (int i = 0; i < mEncoderNumber; i++) {
-		mEncoders[i] = new EncoderInterface();
-		char name[256];
-		sprintf(name, "MEM_SHARE_FRAMES_%d", i);
-		mEncoders[i]->init(name, cfg);
-	}
 
 	return 0;
 }
 
-void Dispatcher::dispatch(AVFrame *frame)
+void Dispatcher::setEncoders(EncoderInterface **encoders)
+{
+	mEncoders = encoders;
+}
+
+void Dispatcher::dispatch(AVFrame *frame, int eos)
 {
 	int idrCount = mFrameCount / mFramesPerIdr;
 	int encoderIdx = idrCount % mEncoderNumber;
 	EncoderInterface *encoder = mEncoders[encoderIdx];
-	encoder->receiveOneFrame(frame);
+	encoder->inputOneFrame(frame, eos);
 
 	mFrameCount ++;
 }

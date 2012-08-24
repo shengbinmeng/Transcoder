@@ -1,17 +1,21 @@
 #pragma once
-#include "SharedMemory.h"
+extern "C" {
+	#include "mem_share.h"
+	#include "libavformat/avformat.h"
+}
 #include "Configure.h"
-#include "libavformat/avformat.h"
 
 class EncoderInterface
 {
 private:
-	SharedMemory *mFrameBuffer;
+	share_mem_info_t mPicBuffer;
+	share_mem_info_t mNalBuffer;
 	Configure *mConfigure;
 public:
 	EncoderInterface(void);
 	~EncoderInterface(void);
 
-	int init(char* fileMappingName, Configure* cfg);
-	void receiveOneFrame(AVFrame *frame);
+	int init(char* picMappingName, char* nalMappingName, Configure* cfg);
+	void inputOneFrame(AVFrame *frame, int eos);
+	int outputBitsOfOneFrame(uint8_t *buffer, int maxSize, int *eos);
 };
