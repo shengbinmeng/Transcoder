@@ -9,7 +9,7 @@ int share_mem_init( share_mem_info_t *shm, char *file_mapping_name, int unit_siz
 	
 	shm->current_read = shm->current_write = 0;
 	shm->current_read_map = shm->current_write_map = unit_count;
-	shm->unit_size = unit_size + UNIT_HEADER_LENGTH;
+	shm->unit_size = unit_size;
 	shm->unit_count = unit_count;
 	shm->mapping_count = mapping_count;
 
@@ -54,13 +54,13 @@ int share_mem_read ( share_mem_info_t *shm, void *buffer, int max_size, int *eos
 			if( shm->buffer_handle )
 				UnmapViewOfFile( shm->buffer_handle );
 			shm->buffer_handle = MapViewOfFile( shm->map_handle, FILE_MAP_ALL_ACCESS, 0, 
-				shm->current_read_map * shm->unit_size, shm->mapping_count * shm->unit_size );
+				shm->current_read_map * (shm->unit_size + UNIT_HEADER_LENGTH), shm->mapping_count * (shm->unit_size + UNIT_HEADER_LENGTH) );
 			i_max_unit = shm->current_read_map + shm->mapping_count;
 			i_max_unit = shm->unit_count > i_max_unit ? i_max_unit : shm->unit_count;
 
 			memory = (uint8_t *)shm->buffer_handle;
 			for( i = shm->current_read_map; i < i_max_unit; i ++ ) 
-				shm->share_unit[i] = (share_mem_unit_t *)(memory + shm->unit_size * (i - shm->current_read_map));
+				shm->share_unit[i] = (share_mem_unit_t *)(memory + (shm->unit_size + UNIT_HEADER_LENGTH) * (i - shm->current_read_map));
 		}
 
 		u = shm->share_unit[shm->current_read];
@@ -126,13 +126,13 @@ int share_mem_write( share_mem_info_t *shm, void *buffer, int size, int eos )
 			if( shm->buffer_handle )
 				UnmapViewOfFile( shm->buffer_handle );
 			shm->buffer_handle = MapViewOfFile( shm->map_handle, FILE_MAP_ALL_ACCESS, 0, 
-				shm->current_write_map * shm->unit_size, shm->mapping_count * shm->unit_size );
+				shm->current_write_map * (shm->unit_size + UNIT_HEADER_LENGTH), shm->mapping_count * (shm->unit_size + UNIT_HEADER_LENGTH) );
 			i_max_unit = shm->current_write_map + shm->mapping_count;
 			i_max_unit = shm->unit_count > i_max_unit ? i_max_unit : shm->unit_count;
 
 			memory = (uint8_t *)shm->buffer_handle;
 			for( i = shm->current_write_map; i < i_max_unit; i ++ ) 
-				shm->share_unit[i] = (share_mem_unit_t *)(memory + shm->unit_size * (i - shm->current_write_map) );
+				shm->share_unit[i] = (share_mem_unit_t *)(memory + (shm->unit_size + UNIT_HEADER_LENGTH) * (i - shm->current_write_map) );
 		}
 
 		u = shm->share_unit[shm->current_write];

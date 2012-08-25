@@ -16,7 +16,7 @@ int EncoderInterface::init(char* picMappingName, char* nalMappingName, Configure
 	mConfigure = cfg;
 
 	unitSize = PIC_UNIT_SIZE;
-	unitCount = cfg->framesPerIdr * 6; // PIC_UNIT_COUNT = 600
+	unitCount = PIC_UNIT_COUNT;
 	share_mem_init(&mPicBuffer, picMappingName, unitSize, unitCount, unitCount, 1);
 
 	unitSize = NAL_UNIT_SIZE;
