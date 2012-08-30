@@ -6,8 +6,7 @@
 #include "stdint.h"
 #include "Lentoid.h"
 #include "mem_share.h"
-
-#include <stdlib.h>
+#include <stdio.h>
 
 #define PIC_MAPPING_COUNT 10
 
@@ -17,16 +16,17 @@ int read_frame( LENT_picture_t *pic, share_mem_info_t *shm )
 	size_t chroma_size = luma_size >> 2;
 	int eos;
 
-	if( share_mem_read( shm, pic->img.plane[0], luma_size, &eos ) < 0 )
+	// returned read_size == 0 means "end of stream"
+	if( share_mem_read( shm, pic->img.plane[0], luma_size, &eos ) <= 0 )
 		return -1;
 
-	if( !eos && share_mem_read( shm, pic->img.plane[1], chroma_size, &eos ) < 0 )
+	if( !eos && share_mem_read( shm, pic->img.plane[1], chroma_size, &eos ) <= 0 )
 		return -1;
 
-	if( !eos && share_mem_read( shm, pic->img.plane[2], chroma_size, &eos ) < 0 )
+	if( !eos && share_mem_read( shm, pic->img.plane[2], chroma_size, &eos ) <= 0 )
 		return -1;
 
-	return 1;
+	return 0;
 }
 
 int Encode( LENT_param_t *param, share_mem_info_t *shm_pic, share_mem_info_t *shm_nal )
@@ -43,11 +43,13 @@ int Encode( LENT_param_t *param, share_mem_info_t *shm_pic, share_mem_info_t *sh
 	if( LENT_picture_alloc( &pic, i_width, i_height ) || !h )
 		return -1;
 
-	while( read_frame( &pic, shm_pic ) )
+	while( read_frame( &pic, shm_pic ) == 0 )
 	{
 		i_nal_size = LENT_encoder_encode( h, &nal, &i_nal, &pic, &pic_out );
-		if( i_nal_size < 0 )
+		if( i_nal_size < 0 ) {
+			share_mem_write( shm_nal, NULL, 0, 1 );
 			return -1;
+		}
 		else if( i_nal_size )
 			share_mem_write( shm_nal, nal->p_payload, i_nal_size, 0 );
 	}
@@ -55,13 +57,15 @@ int Encode( LENT_param_t *param, share_mem_info_t *shm_pic, share_mem_info_t *sh
 	while( LENT_encoder_encoding( h ) )
 	{
 		i_nal_size = LENT_encoder_encode( h, &nal, &i_nal, NULL, &pic_out );
-		if( i_nal_size < 0 )
+		if( i_nal_size < 0 ) {
+			share_mem_write( shm_nal, NULL, 0, 1 );
 			return -1;
+		}
 		else if( i_nal_size )
 			share_mem_write( shm_nal, nal->p_payload, i_nal_size, 0 );
 	}
 
-	share_mem_write( shm_nal, NULL, -1, 1 );
+	share_mem_write( shm_nal, NULL, 0, 1 );
 	LENT_picture_free( &pic );
 	LENT_encoder_close( h );
 
@@ -74,7 +78,7 @@ int main( int argc, char **argv )
 	share_mem_info_t shm_pic, shm_nal;
 	int ret;
 
-	if( argc != 6 )
+	if( argc != 8 )
 		return -1;
 
 	LENT_param_default( &param );
@@ -100,6 +104,9 @@ int main( int argc, char **argv )
 		param.spatial[0].i_qp[0] = val;
 		param.spatial[0].i_bitrate[0] = val;
 	}
+
+	param.i_encoder_index = atoi( argv[6] );
+	param.i_encoder_count = atoi( argv[7] );
 
 	ret = Encode( &param, &shm_pic, &shm_nal );
 

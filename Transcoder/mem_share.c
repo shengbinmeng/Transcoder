@@ -17,13 +17,13 @@ int share_mem_init( share_mem_info_t *shm, char *file_mapping_name, int unit_siz
 		mapping, 400 );
 	if (create) {
 		shm->map_handle = CreateFileMapping( INVALID_HANDLE_VALUE, NULL,
-			PAGE_READWRITE, 0, (unit_size + UNIT_HEADER_LENGTH) * unit_count, mapping );
+			PAGE_READWRITE, 0, (shm->unit_size + UNIT_HEADER_LENGTH) * unit_count, mapping );
 	} else {
 		shm->map_handle = OpenFileMapping( FILE_MAP_ALL_ACCESS, FALSE, mapping );
 	}
-	if( shm->map_handle == NULL )
-	{
-		printf( "Can't open file mapping, error %d\n", GetLastError() );
+
+	if( shm->map_handle == NULL ) {
+		printf( "Can't create/open file mapping, error %d\n", GetLastError() );
 		return -1;
 	}
 	
@@ -71,7 +71,6 @@ int share_mem_read ( share_mem_info_t *shm, void *buffer, int max_size, int *eos
 			Sleep( 50 );
 		}
 		content_size = u->content_size;
-
 		if (max_size < content_size) {
 			// should not change our content; user needs to increase max size
 			return -1;
@@ -100,11 +99,12 @@ int share_mem_write( share_mem_info_t *shm, void *buffer, int size, int eos )
 	int unit_size = shm->unit_size;
 	uint8_t *addr = (uint8_t *)buffer;
 
-	if( size == -1 )
+	if( size == 0 )
 	{
 		share_mem_unit_t *u = shm->share_unit[shm->current_write];
 
-		u->content_size  = 0;
+		u->has_content = 1;
+		u->content_size = 0;
 		u->eob = 1;
 		u->eos = eos;
 

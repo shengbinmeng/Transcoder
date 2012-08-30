@@ -28,6 +28,14 @@ void Dispatcher::setEncoders(EncoderInterface **encoders)
 
 void Dispatcher::dispatch(AVFrame *frame, int eos)
 {
+	if (eos == 1) {
+		//end of stream
+		for (int i = 0; i < mEncoderNumber; i++) {
+			mEncoders[i]->inputOneFrame(NULL, 1);
+		}
+		return ;
+	}
+
 	int idrCount = mFrameCount / mFramesPerIdr;
 	int encoderIdx = idrCount % mEncoderNumber;
 	EncoderInterface *encoder = mEncoders[encoderIdx];

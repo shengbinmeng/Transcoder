@@ -21,7 +21,18 @@ int main(int argc, char* argv[])
 
 	Transcoder transcoder;
 	transcoder.mConfigure = &cfg;
-	transcoder.startUp();
+	ret = transcoder.prepare();
+	if (ret != 0) {
+		printf("prepare failed! ret:%d\n", ret);
+	}
 
+	ret = transcoder.startUp();
+
+	if (ret != 0) {
+		printf("can not start up! ret : %d\n", ret);
+		return -1;
+	}
+
+	transcoder.clean();
 	return 0;
 }

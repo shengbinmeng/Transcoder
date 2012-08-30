@@ -11,44 +11,58 @@ Transcoder::Transcoder(void)
 {
 	mDispatcher = new Dispatcher();
 	mCollector = new Collector();
+	mEncoders = NULL;
+	mConfigure = NULL;
 }
 
 Transcoder::~Transcoder(void)
 {
+	delete mDispatcher;
+	delete mCollector;
 }
 
-int Transcoder::initEncoders()
+int Transcoder::prepare()
 {
+	if (mConfigure == NULL) {
+		printf("not configured!\n");
+		return -1;
+	}
 	mEncoders = (EncoderInterface ** )malloc(sizeof(EncoderInterface*) * mConfigure->encoderNumber);
-    for (int i = 0; i < mConfigure->encoderNumber; i++) {
+	int number = mConfigure->encoderNumber;
+    for (int i = 0; i < number; i++) {
         mEncoders[i] = new EncoderInterface();
-        char picName[256], nalName[256];
-        sprintf(picName, "MEM_SHARE_PIC_%d", i);
-		sprintf(nalName, "MEM_SHARE_NAL_%d", i);
-        mEncoders[i]->init(picName,nalName, mConfigure);
     }
+
+	mDispatcher->init(mConfigure);
+	mDispatcher->setEncoders(mEncoders);
+
+	mCollector->init(mConfigure);
+	mCollector->setEncoders(mEncoders);
 
     return 0;
 }
 
-int Transcoder::initDispatcher()
-{
-	mDispatcher->init(mConfigure);
-	mDispatcher->setEncoders(mEncoders);
-	return 0;
-}
 
-int Transcoder::initCollector()
-{
-	mCollector->init(mConfigure);
-	mCollector->setEncoders(mEncoders);
-	return 0;
+void write_yuv_to_file(AVFrame* frame, FILE *fp) {
+        int i = 0;
+        int width = frame->width, height = frame->height;
+        for (i = 0; i < height; i++) {
+                fwrite(frame->data[0] + frame->linesize[0] * i, width, 1, fp);
+        }
+        for (i = 0; i < height/2;i++) {
+                fwrite(frame->data[1] + frame->linesize[1] * i, width/2, 1, fp);
+        }
+        for (i = 0; i < height/2; i++) {
+                fwrite(frame->data[2] + frame->linesize[2] * i, width/2, 1, fp);
+        }
+        fflush(fp);
 }
 
 int Transcoder::startUp()
 {
 	FILE *fp_yuv;
 	int ret, i, j;
+
 	// input demux & decode
 	AVFormatContext *ic;
 	AVCodecContext *codec_ctx;
@@ -106,17 +120,18 @@ int Transcoder::startUp()
 	
 	mConfigure->height = codec_ctx->height;
 	mConfigure->width = codec_ctx->width;
-	Dispatcher *dispatcher = mDispatcher;
 
-	initEncoders();
-	initDispatcher();
-	initCollector();
+	for (int i = 0; i < mConfigure->encoderNumber; i++) {
+	     mEncoders[i]->startEncoding(mConfigure, i, mConfigure->encoderNumber);
+	}
+
 	mCollector->startCollecting();
 
+	fp_yuv = fopen("frames.yuv","wb");
 	frame = avcodec_alloc_frame();
 	i = 0;
 	// decode loop
-	while ( i < 10000 && (ret = av_read_frame(ic, &packet)) >= 0 ) {
+	while ( i < 500 && (ret = av_read_frame(ic, &packet)) >= 0 ) {
 		int got_frame;
 		// skip other packet
 		if ( packet.stream_index != vsid )
@@ -128,7 +143,8 @@ int Transcoder::startUp()
 		}
 		if ( ret >= 0 && got_frame ) {
 			if ( frame->format == PIX_FMT_YUV420P ) {
-				dispatcher->dispatch(frame, 0);
+				mDispatcher->dispatch(frame, 0);
+				//write_yuv_to_file(frame,fp_yuv);
 
 				// update frame counter
 				i++;
@@ -138,10 +154,26 @@ int Transcoder::startUp()
 		av_free_packet(&packet);
 	}
 
+	mDispatcher->dispatch(NULL, 1);
+	fclose(fp_yuv);
 
 	av_free(frame);
 	avcodec_close(codec_ctx);
 	avformat_close_input(&ic);
+
+	mCollector->finishCollecting();
+
+	return 0;
+}
+
+int Transcoder::clean()
+{
+	for (int i = 0; i < mConfigure->encoderNumber; i++) {
+		EncoderInterface *encoder = mEncoders[i];
+		encoder->cleanUp();
+		delete encoder;
+    }
+	delete mEncoders;
 
 	return 0;
 }

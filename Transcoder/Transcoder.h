@@ -12,9 +12,8 @@ public:
 public:
 	Transcoder(void);
 	~Transcoder(void);
-	int initEncoders();
-	int initDispatcher();
-	int initCollector();
 
+	int prepare();
 	int startUp();
+	int clean();
 };

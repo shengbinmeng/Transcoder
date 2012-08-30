@@ -9,8 +9,13 @@ EncoderInterface::~EncoderInterface(void)
 {
 }
 
-int EncoderInterface::init(char* picMappingName, char* nalMappingName, Configure *cfg)
+int EncoderInterface::startEncoding(Configure *cfg, int index, int totalNumber)
 {
+
+	char picMappingName[256], nalMappingName[256];
+	sprintf(picMappingName, "MEM_SHARE_PIC_%d", index);
+	sprintf(nalMappingName, "MEM_SHARE_NAL_%d", index);
+
 	int unitSize = 0, unitCount = 0;
 
 	mConfigure = cfg;
@@ -25,7 +30,7 @@ int EncoderInterface::init(char* picMappingName, char* nalMappingName, Configure
 
 	//open encoder
 	char args[1024];
-	sprintf(args, "Encoder.exe %s %s %d %d %d", picMappingName, nalMappingName, cfg->width, cfg->height, 32);
+	sprintf(args, "Encoder.exe %s %s %d %d %d %d %d", picMappingName, nalMappingName, cfg->width, cfg->height, 32, index, totalNumber);
 	wchar_t args_w[1024];
 	MultiByteToWideChar( CP_ACP, 0, args, -1, args_w, 400 );
 	STARTUPINFO si;
@@ -44,6 +49,10 @@ int EncoderInterface::init(char* picMappingName, char* nalMappingName, Configure
 
 void EncoderInterface::inputOneFrame(AVFrame *frame, int eos)
 {
+	if (eos == 1) {
+		share_mem_write(&mPicBuffer, NULL, 0, 1);
+		return ;
+	}
 	int ySize = frame->height * frame->width;
 	share_mem_write(&mPicBuffer, frame->data[0], ySize, eos);
 	share_mem_write(&mPicBuffer, frame->data[1], ySize * 1/4, eos);
@@ -56,4 +65,14 @@ int EncoderInterface::outputBitsOfOneFrame(uint8_t *buffer, int maxSize, int* eo
 	if (readSize != -1) {
 		return readSize;
 	}
+
+	return -1;
+}
+
+int EncoderInterface::cleanUp()
+{
+	share_mem_uninit(&mPicBuffer);
+	share_mem_uninit(&mNalBuffer);
+
+	return 0;
 }

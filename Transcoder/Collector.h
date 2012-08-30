@@ -10,6 +10,7 @@ public:
 	int mFramesPerIdr;
 	EncoderInterface **mEncoders;
 	pthread_t mThread;
+	int mRunning;
 	FILE *mOutputFile;
 public:
 	Collector(void);
@@ -18,4 +19,7 @@ public:
 	int init(Configure *cfg);
 	void setEncoders(EncoderInterface **encoders);
 	int startCollecting();
+	int finishCollecting();
+	int collect();
+	static void* threadEntry(void* ptr);
 };

@@ -18,7 +18,7 @@ typedef struct
 	uint32_t content_size;
 	uint8_t has_content;
 	uint8_t eos; //end of stream
-	uint8_t eob; //end of block
+	uint8_t eob; //end of b
 	uint8_t reserved; //reserved
 
 	//contents
@@ -33,7 +33,7 @@ typedef struct
 	int32_t current_write;
 	int32_t current_read_map;
 	int32_t current_write_map;
-	int32_t unit_size;
+	int32_t unit_size;  // size of usefull data, not including unit header
 	int32_t unit_count;
 	int32_t mapping_count;
 } share_mem_info_t;

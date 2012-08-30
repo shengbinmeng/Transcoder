@@ -6,6 +6,7 @@ Collector::Collector(void)
 	mEncoderNumber = 0;
 	mFramesPerIdr = 0;
 	mEncoders = NULL;
+	mOutputFile = NULL;
 }
 
 Collector::~Collector(void)
@@ -30,37 +31,60 @@ void Collector::setEncoders(EncoderInterface **encoders)
 }
 
 
-void* collect (void* arg)
+int Collector::collect()
 {
-	Collector *c = (Collector*) arg;
-	FILE *outputFile = c->mOutputFile;
-
-	int eos = 0, idrCount = 0, encoderIdx = 0;
-	int maxSize = 1<<14;
+	int eos = 0, eosCount = 0, idrCount = 0, encoderIdx = 0;
+	int maxSize = 1<<16;
 	uint8_t *buffer = (uint8_t*) malloc(maxSize);
-	while (1) {
-		idrCount = c->mFrameCount / c->mFramesPerIdr;
-		encoderIdx = idrCount % c->mEncoderNumber;
-		EncoderInterface *encoder = c->mEncoders[encoderIdx];
+	while (mRunning) {
+		idrCount = mFrameCount / mFramesPerIdr;
+		encoderIdx = idrCount % mEncoderNumber;
+		EncoderInterface *encoder = mEncoders[encoderIdx];
 		int dataSize = encoder->outputBitsOfOneFrame(buffer, maxSize, &eos);
 		if (dataSize > 0) {
-			fwrite(buffer, dataSize, 1, outputFile);
+			fwrite(buffer, dataSize, 1, mOutputFile);
 		}
 
-		if (eos == 1) {
-			break;
+		if (eos == 1 || dataSize == 0) {
+			eosCount ++;
+			if (eosCount == 1) break;
+			eos = 0;
 		}
 
-		c->mFrameCount ++;
+		mFrameCount ++;
 	}
-	return NULL;
+
+	fclose(mOutputFile);
+
+	return 0;
 }
 
 int Collector::startCollecting()
 {
-	int ret = pthread_create(&mThread, NULL, collect, this);
+	int ret = pthread_create(&mThread, NULL, threadEntry, this);
     if (ret != 0) {
-        printf("create decode thread failed, return %d", ret);
+        printf("create collecting thread failed, return %d", ret);
         return -1;
     }
+
+	return 0;
+}
+
+void* Collector::threadEntry(void* ptr)
+{
+	Collector *c = (Collector*) ptr;
+	c->mRunning = 1;
+	c->collect();
+	c->mRunning = 0;
+
+	return NULL;
+}
+
+int Collector::finishCollecting()
+{
+	if (mRunning == 0) {
+		// already stop
+		return 0;
+	}
+	return pthread_join(mThread, NULL); // return 0 if success
 }

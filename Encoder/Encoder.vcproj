@@ -138,7 +138,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Lentoid.lib pthreadVC2.lib"
+				AdditionalDependencies="pthreadVC2.lib Lentoid.lib "
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="./Lentoid"
 				IgnoreDefaultLibraryNames="libcmt.lib"
@@ -146,6 +146,7 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="1"
 				TargetMachine="1"
 			/>
 			<Tool

@@ -15,7 +15,8 @@ public:
 	EncoderInterface(void);
 	~EncoderInterface(void);
 
-	int init(char* picMappingName, char* nalMappingName, Configure* cfg);
+	int startEncoding(Configure* cfg, int index, int totalNumber);
 	void inputOneFrame(AVFrame *frame, int eos);
 	int outputBitsOfOneFrame(uint8_t *buffer, int maxSize, int *eos);
+	int cleanUp();
 };
