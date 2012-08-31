@@ -11,6 +11,8 @@ private:
 	share_mem_info_t mPicBuffer;
 	share_mem_info_t mNalBuffer;
 	Configure *mConfigure;
+	STARTUPINFO mSI;
+	PROCESS_INFORMATION mPI;
 public:
 	EncoderInterface(void);
 	~EncoderInterface(void);

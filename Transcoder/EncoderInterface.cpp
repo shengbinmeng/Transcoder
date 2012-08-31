@@ -33,14 +33,13 @@ int EncoderInterface::startEncoding(Configure *cfg, int index, int totalNumber)
 	sprintf(args, "Encoder.exe %s %s %d %d %d %d %d", picMappingName, nalMappingName, cfg->width, cfg->height, 32, index, totalNumber);
 	wchar_t args_w[1024];
 	MultiByteToWideChar( CP_ACP, 0, args, -1, args_w, 400 );
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
-	ZeroMemory( &pi, sizeof(pi) );
-	ZeroMemory( &si, sizeof(si) );
-	si.cb = sizeof(si);
+
+	ZeroMemory( &mPI, sizeof(mPI) );
+	ZeroMemory( &mSI, sizeof(mSI) );
+	mSI.cb = sizeof(mSI);
 	// Start the child process
 	BOOL ret = 0;
-	ret = CreateProcess(NULL, args_w, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+	ret = CreateProcess(NULL, args_w, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &mSI, &mPI);
 	if(ret == 0) {
 		printf("CreateProcess failed! error: %d", GetLastError());
 	}
@@ -74,5 +73,6 @@ int EncoderInterface::cleanUp()
 	share_mem_uninit(&mPicBuffer);
 	share_mem_uninit(&mNalBuffer);
 
+	TerminateProcess(mPI.hProcess, 0);
 	return 0;
 }

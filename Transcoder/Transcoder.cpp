@@ -127,11 +127,11 @@ int Transcoder::startUp()
 
 	mCollector->startCollecting();
 
-	fp_yuv = fopen("frames.yuv","wb");
+	//fp_yuv = fopen("frames.yuv","wb");
 	frame = avcodec_alloc_frame();
 	i = 0;
 	// decode loop
-	while ( i < 500 && (ret = av_read_frame(ic, &packet)) >= 0 ) {
+	while ( i < 240 && (ret = av_read_frame(ic, &packet)) >= 0 ) {
 		int got_frame;
 		// skip other packet
 		if ( packet.stream_index != vsid )
@@ -155,7 +155,7 @@ int Transcoder::startUp()
 	}
 
 	mDispatcher->dispatch(NULL, 1);
-	fclose(fp_yuv);
+	//fclose(fp_yuv);
 
 	av_free(frame);
 	avcodec_close(codec_ctx);

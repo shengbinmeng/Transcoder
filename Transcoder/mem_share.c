@@ -99,19 +99,7 @@ int share_mem_write( share_mem_info_t *shm, void *buffer, int size, int eos )
 	int unit_size = shm->unit_size;
 	uint8_t *addr = (uint8_t *)buffer;
 
-	if( size == 0 )
-	{
-		share_mem_unit_t *u = shm->share_unit[shm->current_write];
-
-		u->has_content = 1;
-		u->content_size = 0;
-		u->eob = 1;
-		u->eos = eos;
-
-		shm->current_write = (shm->current_write + 1) % shm->unit_count;
-	}
-
-	while( size > 0 )
+	while( size >= 0 )
 	{
 		int content_size = size > unit_size ? unit_size : size;
 		share_mem_unit_t *u;
@@ -148,13 +136,17 @@ int share_mem_write( share_mem_info_t *shm, void *buffer, int size, int eos )
 		u->eos = (u->eob && eos) ? 1 : 0;
 
 		memcpy( CONTENT(u), addr, content_size );
-		printf("write a block: %d \n",shm->current_write);
+		printf("write a block %d, size %d \n",shm->current_write, content_size);
 
 		u->has_content = 1;
 
 		shm->current_write = (shm->current_write + 1) % shm->unit_count;
 		addr += content_size;
 		size -= content_size;
+		if( size == 0 ) {
+			// end of stream
+			break;
+		}
 	}
 
 	return 0;

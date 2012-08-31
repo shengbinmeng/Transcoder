@@ -38,11 +38,15 @@ int Encode( LENT_param_t *param, share_mem_info_t *shm_pic, share_mem_info_t *sh
 	LENT_nal_t *nal = NULL;
 	int i_width = param->spatial[param->i_spatial_layer - 1].i_width;
 	int i_height = param->spatial[param->i_spatial_layer - 1].i_height;
+	char name[1024];
+	FILE *fpNal;
 
 	h = LENT_encoder_open( param );
 	if( LENT_picture_alloc( &pic, i_width, i_height ) || !h )
 		return -1;
 
+	sprintf(name, "nal-%d.bin", param->i_encoder_index);
+	//fpNal = fopen(name, "wb");
 	while( read_frame( &pic, shm_pic ) == 0 )
 	{
 		i_nal_size = LENT_encoder_encode( h, &nal, &i_nal, &pic, &pic_out );
@@ -50,8 +54,10 @@ int Encode( LENT_param_t *param, share_mem_info_t *shm_pic, share_mem_info_t *sh
 			share_mem_write( shm_nal, NULL, 0, 1 );
 			return -1;
 		}
-		else if( i_nal_size )
+		else if( i_nal_size ) {
 			share_mem_write( shm_nal, nal->p_payload, i_nal_size, 0 );
+			//fwrite(nal->p_payload, i_nal_size, 1, fpNal);
+		}
 	}
 	
 	while( LENT_encoder_encoding( h ) )
@@ -61,14 +67,17 @@ int Encode( LENT_param_t *param, share_mem_info_t *shm_pic, share_mem_info_t *sh
 			share_mem_write( shm_nal, NULL, 0, 1 );
 			return -1;
 		}
-		else if( i_nal_size )
+		else if( i_nal_size ) {
 			share_mem_write( shm_nal, nal->p_payload, i_nal_size, 0 );
+			//fwrite(nal->p_payload, i_nal_size, 1, fpNal);
+		}
 	}
 
 	share_mem_write( shm_nal, NULL, 0, 1 );
 	LENT_picture_free( &pic );
 	LENT_encoder_close( h );
 
+	//fclose(fpNal);
 	return 0;
 }
 
