@@ -1,6 +1,6 @@
-#include "Transcoder.h"
 #include <stdlib.h>
 #include <stdint.h>
+#include "Transcoder.h"
 extern "C" {
 #include "libavformat/avformat.h"
 #include "libavcodec/avcodec.h"
@@ -115,7 +115,7 @@ int Transcoder::work()
 	frame = avcodec_alloc_frame();
 	i = 0;
 	// decode loop
-	while (i < 210 && (ret = av_read_frame(ic, &packet)) >= 0) {
+	while (av_read_frame(ic, &packet)) {
 		int got_frame;
 		// skip other packet
 		if (packet.stream_index != vsid) {
@@ -136,6 +136,10 @@ int Transcoder::work()
 			}
 		}
 		av_free_packet(&packet);
+
+		if (mConfigure->frameNumber > 0 && i > mConfigure->frameNumber) {
+			break;
+		}
 	}
 
 	mDispatcher->dispatch(NULL, 1);

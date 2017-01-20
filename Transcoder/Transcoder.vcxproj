@@ -100,7 +100,7 @@
     <ClCompile Include="Dispatcher.cpp" />
     <ClCompile Include="EncoderInterface.cpp" />
     <ClCompile Include="SharedMemory.cpp" />
-    <ClCompile Include="transcode.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="Transcoder.cpp" />
   </ItemGroup>
   <ItemGroup>

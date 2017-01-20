@@ -1,4 +1,5 @@
 #pragma once
+
 #include "EncoderInterface.h"
 #define HAVE_STRUCT_TIMESPEC
 #include "pthread.h"

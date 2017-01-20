@@ -1,7 +1,9 @@
 #pragma once
+
 #include "Dispatcher.h"
 #include "Configure.h"
 #include "Collector.h"
+
 class Transcoder
 {
 public:

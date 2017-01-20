@@ -8,9 +8,9 @@
 int main(int argc, char* argv[])
 {
 	int ret = 0;
-	if ( argc != 3 ) {
+	if (argc != 3) {
 		printf("Usage: %s <input_file> <output_file>\n", argv[0]);
-		return 1;
+		exit(1);
 	}
 
 	Configure cfg;
@@ -18,6 +18,7 @@ int main(int argc, char* argv[])
 	cfg.inputFile = argv[1];
 	cfg.outputFile = argv[2];
 	cfg.framesPerIdr = FRAME_NUM_PER_IDR;
+	cfg.frameNumber = -1; // No limit.
 
 	Transcoder transcoder;
 	transcoder.mConfigure = &cfg;

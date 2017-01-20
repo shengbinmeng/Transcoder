@@ -5,8 +5,7 @@
 #endif
 #include "stdint.h"
 
-typedef struct
-{
+typedef struct {
 	int content_size;
 	uint8_t has_content;
 	uint8_t eos; //end of stream
@@ -17,7 +16,8 @@ typedef struct
 	//contents
 } share_mem_unit_t;
 
-class SharedMemory {
+class SharedMemory
+{
 private:
 	HANDLE mHandle;
 	LPVOID mBuffer;
@@ -29,7 +29,8 @@ private:
 
 public:
 	static const int unitHeaderLength = 8;
-	static uint8_t* contentOf(share_mem_unit_t * u) {
+	static uint8_t* contentOf(share_mem_unit_t * u)
+	{
 		return (uint8_t *)u + unitHeaderLength;
 	}
 

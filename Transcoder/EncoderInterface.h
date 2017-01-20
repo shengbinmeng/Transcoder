@@ -1,6 +1,7 @@
 #pragma once
+
 extern "C" {
-	#include "libavformat/avformat.h"
+#include "libavformat/avformat.h"
 }
 #include "Configure.h"
 #include "SharedMemory.h"

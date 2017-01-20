@@ -1,6 +1,8 @@
 #pragma once
+
 #include "EncoderInterface.h"
 #include "Configure.h"
+
 class Dispatcher
 {
 	int mFrameCount;

@@ -9,6 +9,7 @@ public:
 	char *inputFile;
 	char *outputFile;
 	int framesPerIdr;
+	int frameNumber;
 public:
 	Configure(void);
 	~Configure(void);
