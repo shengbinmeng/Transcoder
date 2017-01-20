@@ -37,21 +37,28 @@ int Collector::collect()
 	int maxSize = 1<<16;
 	uint8_t *buffer = (uint8_t*) malloc(maxSize);
 	while (mRunning) {
-		idrCount = mFrameCount / mFramesPerIdr;
 		encoderIdx = idrCount % mEncoderNumber;
 		EncoderInterface *encoder = mEncoders[encoderIdx];
 		int dataSize = encoder->outputBitsOfOneFrame(buffer, maxSize, &eos);
 		if (dataSize > 0) {
 			fwrite(buffer, dataSize, 1, mOutputFile);
+			mFrameCount++;
+			if (mFrameCount == mFramesPerIdr) {
+				idrCount++;
+			}
+		} else {
+			Sleep(10);
 		}
 
-		if (eos == 1 || dataSize == 0) {
-			eosCount ++;
-			if (eosCount == 1) break;
+		if (eos == 1) {
+			eosCount++;
+			if (eosCount == mEncoderNumber) {
+				// All encoders have given eos.
+				break;
+			}
+			idrCount++;
 			eos = 0;
 		}
-
-		mFrameCount ++;
 	}
 
 	fclose(mOutputFile);
@@ -66,7 +73,6 @@ int Collector::startCollecting()
         printf("create collecting thread failed, return %d", ret);
         return -1;
     }
-
 	return 0;
 }
 

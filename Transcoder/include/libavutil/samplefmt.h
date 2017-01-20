@@ -19,7 +19,10 @@
 #ifndef AVUTIL_SAMPLEFMT_H
 #define AVUTIL_SAMPLEFMT_H
 
+#include <stdint.h>
+
 #include "avutil.h"
+#include "attributes.h"
 
 /**
  * Audio Sample Formats
@@ -155,16 +158,20 @@ int av_samples_get_buffer_size(int *linesize, int nb_channels, int nb_samples,
                                enum AVSampleFormat sample_fmt, int align);
 
 /**
- * Fill channel data pointers and linesize for samples with sample
+ * Fill plane data pointers and linesize for samples with sample
  * format sample_fmt.
  *
- * The pointers array is filled with the pointers to the samples data:
+ * The audio_data array is filled with the pointers to the samples data planes:
  * for planar, set the start point of each channel's data within the buffer,
  * for packed, set the start point of the entire buffer only.
  *
- * The linesize array is filled with the aligned size of each channel's data
- * buffer for planar layout, or the aligned size of the buffer for all channels
- * for packed layout.
+ * The value pointed to by linesize is set to the aligned size of each
+ * channel's data buffer for planar layout, or to the aligned size of the
+ * buffer for all channels for packed layout.
+ *
+ * The buffer in buf must be big enough to contain all the samples
+ * (use av_samples_get_buffer_size() to compute its minimum size),
+ * otherwise the audio_data pointers will point to invalid data.
  *
  * @see enum AVSampleFormat
  * The documentation for AVSampleFormat describes the data layout.
@@ -178,7 +185,8 @@ int av_samples_get_buffer_size(int *linesize, int nb_channels, int nb_samples,
  * @param align            buffer size alignment (0 = default, 1 = no alignment)
  * @return                 0 on success or a negative error code on failure
  */
-int av_samples_fill_arrays(uint8_t **audio_data, int *linesize, uint8_t *buf,
+int av_samples_fill_arrays(uint8_t **audio_data, int *linesize,
+                           const uint8_t *buf,
                            int nb_channels, int nb_samples,
                            enum AVSampleFormat sample_fmt, int align);
 
@@ -200,5 +208,32 @@ int av_samples_fill_arrays(uint8_t **audio_data, int *linesize, uint8_t *buf,
  */
 int av_samples_alloc(uint8_t **audio_data, int *linesize, int nb_channels,
                      int nb_samples, enum AVSampleFormat sample_fmt, int align);
+
+/**
+ * Copy samples from src to dst.
+ *
+ * @param dst destination array of pointers to data planes
+ * @param src source array of pointers to data planes
+ * @param dst_offset offset in samples at which the data will be written to dst
+ * @param src_offset offset in samples at which the data will be read from src
+ * @param nb_samples number of samples to be copied
+ * @param nb_channels number of audio channels
+ * @param sample_fmt audio sample format
+ */
+int av_samples_copy(uint8_t **dst, uint8_t * const *src, int dst_offset,
+                    int src_offset, int nb_samples, int nb_channels,
+                    enum AVSampleFormat sample_fmt);
+
+/**
+ * Fill an audio buffer with silence.
+ *
+ * @param audio_data  array of pointers to data planes
+ * @param offset      offset in samples at which to start filling
+ * @param nb_samples  number of samples to fill
+ * @param nb_channels number of audio channels
+ * @param sample_fmt  audio sample format
+ */
+int av_samples_set_silence(uint8_t **audio_data, int offset, int nb_samples,
+                           int nb_channels, enum AVSampleFormat sample_fmt);
 
 #endif /* AVUTIL_SAMPLEFMT_H */

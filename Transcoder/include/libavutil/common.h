@@ -171,7 +171,7 @@ static av_always_inline av_const int16_t av_clip_int16_c(int a)
 static av_always_inline av_const int32_t av_clipl_int32_c(int64_t a)
 {
     if ((a+0x80000000u) & ~UINT64_C(0xFFFFFFFF)) return (a>>63) ^ 0x7FFFFFFF;
-    else                                         return a;
+    else                                         return (int32_t)a;
 }
 
 /**
@@ -184,6 +184,30 @@ static av_always_inline av_const unsigned av_clip_uintp2_c(int a, int p)
 {
     if (a & ~((1<<p) - 1)) return -a >> 31 & ((1<<p) - 1);
     else                   return  a;
+}
+
+/**
+ * Add two signed 32-bit values with saturation.
+ *
+ * @param  a one value
+ * @param  b another value
+ * @return sum with signed saturation
+ */
+static av_always_inline int av_sat_add32_c(int a, int b)
+{
+    return av_clipl_int32((int64_t)a + b);
+}
+
+/**
+ * Add a doubled value to another value with saturation at both stages.
+ *
+ * @param  a first value
+ * @param  b value doubled and added to a
+ * @return sum with signed saturation
+ */
+static av_always_inline int av_sat_dadd32_c(int a, int b)
+{
+    return av_sat_add32(a, av_sat_add32(b, b));
 }
 
 /**
@@ -230,7 +254,7 @@ static av_always_inline av_const int av_popcount_c(uint32_t x)
  */
 static av_always_inline av_const int av_popcount64_c(uint64_t x)
 {
-    return av_popcount(x) + av_popcount(x >> 32);
+    return av_popcount((uint32_t)x) + av_popcount(x >> 32);
 }
 
 #define MKTAG(a,b,c,d) ((a) | ((b) << 8) | ((c) << 16) | ((unsigned)(d) << 24))
@@ -391,6 +415,12 @@ static av_always_inline av_const int av_popcount64_c(uint64_t x)
 #endif
 #ifndef av_clip_uintp2
 #   define av_clip_uintp2   av_clip_uintp2_c
+#endif
+#ifndef av_sat_add32
+#   define av_sat_add32     av_sat_add32_c
+#endif
+#ifndef av_sat_dadd32
+#   define av_sat_dadd32    av_sat_dadd32_c
 #endif
 #ifndef av_clipf
 #   define av_clipf         av_clipf_c

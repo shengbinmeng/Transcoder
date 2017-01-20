@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 extern "C" {
-	#include "libavformat/avformat.h"
-	#include "libavcodec/avcodec.h"
-	#include "libavutil/avutil.h"
+#include "libavformat/avformat.h"
+#include "libavcodec/avcodec.h"
+#include "libavutil/avutil.h"
 }
 
 Transcoder::Transcoder(void)
@@ -27,11 +27,11 @@ int Transcoder::prepare()
 		printf("not configured!\n");
 		return -1;
 	}
-	mEncoders = (EncoderInterface ** )malloc(sizeof(EncoderInterface*) * mConfigure->encoderNumber);
+	mEncoders = (EncoderInterface **)malloc(sizeof(EncoderInterface*) * mConfigure->encoderNumber);
 	int number = mConfigure->encoderNumber;
-    for (int i = 0; i < number; i++) {
-        mEncoders[i] = new EncoderInterface();
-    }
+	for (int i = 0; i < number; i++) {
+		mEncoders[i] = new EncoderInterface();
+	}
 
 	mDispatcher->init(mConfigure);
 	mDispatcher->setEncoders(mEncoders);
@@ -39,29 +39,13 @@ int Transcoder::prepare()
 	mCollector->init(mConfigure);
 	mCollector->setEncoders(mEncoders);
 
-    return 0;
+	return 0;
 }
 
 
-void write_yuv_to_file(AVFrame* frame, FILE *fp) {
-        int i = 0;
-        int width = frame->width, height = frame->height;
-        for (i = 0; i < height; i++) {
-                fwrite(frame->data[0] + frame->linesize[0] * i, width, 1, fp);
-        }
-        for (i = 0; i < height/2;i++) {
-                fwrite(frame->data[1] + frame->linesize[1] * i, width/2, 1, fp);
-        }
-        for (i = 0; i < height/2; i++) {
-                fwrite(frame->data[2] + frame->linesize[2] * i, width/2, 1, fp);
-        }
-        fflush(fp);
-}
-
-int Transcoder::startUp()
+int Transcoder::work()
 {
-	FILE *fp_yuv;
-	int ret, i, j;
+	int ret, i;
 
 	// input demux & decode
 	AVFormatContext *ic;
@@ -73,89 +57,88 @@ int Transcoder::startUp()
 
 	// ffmpeg input initialize
 	av_register_all();
-	
+
 	ic = avformat_alloc_context();
 	if (ic == NULL) {
-		printf("call avformat_alloc_context failed! return %d\n");
+		printf("call avformat_alloc_context failed!");
 		return 2;
 	}
-	
+
 	char *file = mConfigure->inputFile;
 	//file = "test.wmv";
 	ret = avformat_open_input(&ic, file, NULL, NULL);
-	if ( 0 != ret ) {
+	if (0 != ret) {
 		printf("call avformat_open_input failed! return %d\n", ret);
 		return 2;
 	}
 	ret = avformat_find_stream_info(ic, NULL);
-	if ( ret < 0 ) {
+	if (ret < 0) {
 		printf("call avformat_find_stream_info failed! return %d\n", ret);
 		return 2;
 	}
 	av_dump_format(ic, 0, file, 0);
-	for ( i = 0; i < ic->nb_streams; i++ ) {
-		if ( ic->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO ) {
+	for (i = 0; i < ic->nb_streams; i++) {
+		if (ic->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
 			vsid = i;
 			break;
 		}
 	}
-	if ( vsid < 0 ) {
+	if (vsid < 0) {
 		printf("can not find video stream!\n");
 		return 3;
 	}
 	printf("Found video stream, id = %d\n", vsid);
 	codec_ctx = ic->streams[vsid]->codec;
 	codec = avcodec_find_decoder(codec_ctx->codec_id);
-	if ( NULL == codec ) {
+	if (NULL == codec) {
 		printf("can not find decoder for video stream!");
 		return 4;
 	}
-	if ( codec->capabilities & CODEC_CAP_TRUNCATED )
+	if (codec->capabilities & CODEC_CAP_TRUNCATED) {
 		codec_ctx->flags |= CODEC_FLAG_TRUNCATED;
+	}
 	ret = avcodec_open2(codec_ctx, codec, NULL);
-	if ( ret < 0 ) {
+	if (ret < 0) {
 		printf("call avcodec_open2 failed! return %d\n", ret);
 		return 2;
 	}
-	
+
 	mConfigure->height = codec_ctx->height;
 	mConfigure->width = codec_ctx->width;
 
 	for (int i = 0; i < mConfigure->encoderNumber; i++) {
-	     mEncoders[i]->startEncoding(mConfigure, i, mConfigure->encoderNumber);
+		mEncoders[i]->startEncoding(mConfigure, i, mConfigure->encoderNumber);
 	}
 
 	mCollector->startCollecting();
 
-	//fp_yuv = fopen("frames.yuv","wb");
 	frame = avcodec_alloc_frame();
 	i = 0;
 	// decode loop
-	while ( i < 240 && (ret = av_read_frame(ic, &packet)) >= 0 ) {
+	while (i < 210 && (ret = av_read_frame(ic, &packet)) >= 0) {
 		int got_frame;
 		// skip other packet
-		if ( packet.stream_index != vsid )
+		if (packet.stream_index != vsid) {
 			continue;
+		}
 
 		ret = avcodec_decode_video2(codec_ctx, frame, &got_frame, &packet);
-		if ( ret != packet.size ) {
-			printf("\tcall avcodec_decode_video2 return %d! input bitstream length is %d\n", ret, packet.size);
+		if (ret != packet.size) {
+			printf("call avcodec_decode_video2 return %d! input bitstream length is %d\n", ret, packet.size);
 		}
-		if ( ret >= 0 && got_frame ) {
-			if ( frame->format == PIX_FMT_YUV420P ) {
+		if (ret >= 0 && got_frame) {
+			if (frame->format == PIX_FMT_YUV420P) {
 				mDispatcher->dispatch(frame, 0);
-				//write_yuv_to_file(frame,fp_yuv);
 
 				// update frame counter
 				i++;
-				printf("\tdecode %d frames, bs_len=%d, resolution=%dx%d, format=%d\n", i, packet.size, frame->width, frame->height, frame->format);
+				printf("decode %d frames, resolution=%dx%d\n", i, frame->width, frame->height);
 			}
 		}
 		av_free_packet(&packet);
 	}
 
 	mDispatcher->dispatch(NULL, 1);
-	//fclose(fp_yuv);
 
 	av_free(frame);
 	avcodec_close(codec_ctx);
@@ -171,9 +154,9 @@ int Transcoder::clean()
 	for (int i = 0; i < mConfigure->encoderNumber; i++) {
 		EncoderInterface *encoder = mEncoders[i];
 		encoder->cleanUp();
-		delete encoder;
-    }
-	delete mEncoders;
+		free(encoder);
+	}
+	free(mEncoders);
 
 	return 0;
 }

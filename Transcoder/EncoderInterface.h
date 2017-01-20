@@ -1,17 +1,17 @@
 #pragma once
 extern "C" {
-	#include "mem_share.h"
 	#include "libavformat/avformat.h"
 }
 #include "Configure.h"
+#include "SharedMemory.h"
 
 class EncoderInterface
 {
 private:
-	share_mem_info_t mPicBuffer;
-	share_mem_info_t mNalBuffer;
+	SharedMemory mPicBuffer;
+	SharedMemory mNalBuffer;
+
 	Configure *mConfigure;
-	STARTUPINFO mSI;
 	PROCESS_INFORMATION mPI;
 public:
 	EncoderInterface(void);

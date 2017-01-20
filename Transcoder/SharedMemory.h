@@ -33,7 +33,8 @@ public:
 		return (uint8_t *)u + unitHeaderLength;
 	}
 
-	int init(char *fileMappingName, bool isCreating, int unitSize, int unitCount);
+	int init(char *fileMappingName, int unitSize, int unitCount, bool isCreating);
 	int writeBlock(uint8_t* data, int dataSize, int eos);
-	int readBlock(uint8_t* buffer, int *endFlag, int maxSize);
+	int readBlock(uint8_t* buffer,int maxSize, int *eos);
+	int uninit();
 };

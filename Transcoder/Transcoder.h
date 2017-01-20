@@ -14,6 +14,6 @@ public:
 	~Transcoder(void);
 
 	int prepare();
-	int startUp();
+	int work();
 	int clean();
 };
